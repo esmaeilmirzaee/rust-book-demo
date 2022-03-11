@@ -31,3 +31,9 @@ fn using_while_loop (arr: [i32; 9]) {
   }
   println!("Finished printing the array");
 }
+
+fn raning_for_loop (arr: [5; f64]) {
+  for 1..arr.len() in arr {
+    println!("{}", )
+  }
+}
