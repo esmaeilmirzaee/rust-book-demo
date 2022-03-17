@@ -47,3 +47,84 @@ Both `absolute` and `relative paths` are followed by one or more identifiers sep
 18. We can also construct _relative paths_ that begin in the _parent module_ by using `super` at the start of the path. This is like starting a filesystem path with the `..` syntax.
 19. We can also use `pub` to designate `struct`s and `enum`s as _public_, but **there are a few extra details**. If we use `pub` before a `struct` definition, we make the `struct` public, but the `struct`’s **fields** will still be **private**. We can make _each field public or not on a case-by-case basis_.
 20. `Enum`s aren’t very useful unless their variants are public; it would be annoying to have to annotate all `enum` variants with `pub` in every case, so the default for `enum` variants is to be public. `Struct`s are often useful without their fields being `public`, so `struct` fields follow the general rule of everything being `private` by default unless annotated with `pub`.
+21. We can bring a path into a scope once and then call the items in that path as if they’re local items with the `use` keyword. Adding `use` and a path in a scope is similar to creating a _symbolic link_ in the _filesystem_. By adding `use crate::front_of_house::hosting` in the crate root, _hosting_ is now a valid name in that scope, just as though the hosting module had been defined in the crate root. Paths brought into scope with `use` also **check privacy**, like any other paths.
+22. Although both Listing 7-11 and 7-13 accomplish the same task, Listing 7-11 is the idiomatic way to bring a function into scope with `use`. Bringing the function’s parent module into scope with `use` means we have to specify the parent module when calling the function. **Specifying the parent module when calling the function makes it clear that the function isn’t locally defined while still minimizing repetition of the full path**.
+
+```rust
+use crate::front_of_house::hosting;
+// use crate::front_of_house::hosting::add_to_waitlist; // using this way makes a function like a local
+
+fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+    // add_to_waitlist(); // it looks it's a local function
+}
+```
+
+23. On the other hand, when bringing in `struct`s, `enum`s, and other items with `use`, it’s idiomatic to specify the full path. _There’s no strong reason behind this idiom: it’s just the convention that has emerged, and folks have gotten used to reading and writing Rust code this way_. **The exception to this idiom is if we’re bringing two items with the same name into scope with use statements, because Rust doesn’t allow that**. As you will see, using the parent modules distinguishes the two `Result` types. If instead we specified `use std::fmt::Result` and `use std::io::Result`, we’d have two `Result` types in the same scope and _Rust_ wouldn’t know which one we meant when we used `Result`.
+
+```rust
+use std::collections::HashMap;
+use std::fmt;
+use std::io;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert(1, 2);
+}
+
+fn function_1() -> fmt::Result {}
+fn function_2() -> io::Result<()> {}
+```
+
+24. There’s another solution to the problem of bringing two types of the same name into the same scope with `use`: after the path, we can specify `as` and a new local name, or alias, for the type.
+
+```rust
+use std::fmt::Result;
+use std::io::Result as IoResult;
+
+fn function_1() -> Result {}
+fn function_2() -> IoResult<()> {}
+```
+
+25. When we bring a name into scope with the `use` keyword, the name available in the new scope is _private_. To enable the code that calls our code to refer to that name as if it had been defined in that code’s scope, we can combine `pub` and `use`. This technique is called **re-exporting** because we’re bringing an item into scope but also making that item available for others to bring into their scope.
+
+```rust
+mod front_of_house {
+    pub mod hosting() {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+pub use crate::front_of_house::hosting;
+
+pub fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+}
+```
+
+26. By using `pub use`, external code can now call the `add_to_waitlist` function using `hosting::add_to_waitlist`. If we hadn’t specified `pub use`, the `eat_at_restaurant` function could call `hosting::add_to_waitlist` in its scope, but external code couldn’t take advantage of this new path.
+27. Members of the Rust community have made many packages available at **crates.io**, and pulling any of them into your package involves these same steps: _listing them in your package’s_ `Cargo.toml` file and using `use` to bring items from their crates into scope.
+28. If we’re using multiple items defined in the same crate or same module, listing each item on its own line can take up a lot of vertical space in our files. Instead, we can use nested paths to bring the same items into scope in one line. We do this by specifying the common part of the path, followed by two colons, and then curly brackets around a list of the parts of the paths that differ.
+
+```rust
+use std::cmp::Ordering;
+use std::io;
+
+// -- snip
+use std::{cmp::Ordering, io};
+```
+
+29. We can use a nested path at any level in a path, which is useful when combining two use statements that share a subpath. The common part of these two paths is `std::io`, and that’s the complete first path. To merge these two paths into one use statement, we can use `self` in the nested path.
+
+```rust
+use std::io;
+use std::io::Write;
+
+// --snip--
+use std::io::{slef, Write};
+```
+
+30. If we want to bring all public items defined in a path into scope, we can specify that path followed by `*`, the glob operator, for example `use std::collections::*;`
+31. Note that the `pub use crate::front_of_house::hosting` statement in `src/lib.rs` also hasn’t changed, nor does `use` have any impact on what files are compiled as part of the crate. The `mod` keyword declares modules, and _Rust_ looks in a file with the same name as the module for the code that goes into that module.
+
+> _Rust_ lets you split a package into multiple _crates_ and _a crate_ into _modules_ so you can refer to items defined in one module from another module. You can do this by specifying **absolute** or **relative paths**. These paths can be brought into scope with a `use` statement so you can use a shorter path for multiple uses of the item in that scope. `Module` code is `private` **by default**, but you can make definitions public by adding the `pub` keyword.

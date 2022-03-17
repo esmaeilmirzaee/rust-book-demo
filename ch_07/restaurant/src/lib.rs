@@ -32,12 +32,20 @@ mod front_of_house {
   }
 }
 
+// using absolute path to bring hosting into the scope
+use crate::front_of_house::hosting;
+
+// using relative path to bring hosting into the scope
+use self::front_of_hose::hosting; 
+
 pub fn eat_at_restaurant() {
   // absolute path
-  crate::front_of_house::hosting::add_to_waitlist();
+  //crate::front_of_house::hosting::add_to_waitlist(); // hosting is in the scope
+  hosting::add_to_waitlist();
   
   // relative path
-  front_of_house::hosting::add_to_waitlist();
+  //front_of_house::hosting::add_to_waitlist(); // hosting is in the scope
+  hosting::add_to_waitlist();
 
   let mut meal = back_of_house::Breakfast::summer("Rye");
   meal.toast = String::from("Wheat");
