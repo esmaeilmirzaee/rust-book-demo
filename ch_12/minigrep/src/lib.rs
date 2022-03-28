@@ -6,6 +6,7 @@ use std::ops::Add;
 pub struct Config {
     pub query: String,
     pub filename: String,
+    pub case_sensitive: bool,
 }
 
 impl Config {
@@ -14,9 +15,12 @@ impl Config {
             return Err("Invalid arguments input, please provide `query` and `filename`");
         }
 
+        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+
         Ok(Config {
             query: args[1].clone(),
             filename: args[2].clone(),
+            case_sensitive,
         })
     }
 }
@@ -28,21 +32,23 @@ pub fn run(config: &mut Config) -> Result<(), Box<dyn Error>> {
 
     let content = fs::read_to_string(&config.filename)?;
 
-    for line in search(&config.query, &content) {
-        println!("{}", line);
-    }
+    let results = if config.case_sensitive {
+        search_case_insensitive(&config.query, &content)
+    } else {
+        search(&config.query, &content)
+    };
 
-    for line in search_case_insensitive("TOO", &content) {
+    for line in results {
         println!("{}", line);
     }
 
     Ok(())
 }
 
-pub fn search<'a>(term: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let mut results = Vec::new();
     for line in contents.lines() {
-        if line.contains(&term) {
+        if line.contains(&query) {
             results.push(line);
         }
     }
