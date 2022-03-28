@@ -28,7 +28,11 @@ pub fn run(config: &mut Config) -> Result<(), Box<dyn Error>> {
 
     let content = fs::read_to_string(&config.filename)?;
 
-    println!("With text: {}", content);
+    // println!("With text: {}", content);
+
+    for line in search(&config.query, &content) {
+        println!("{}", line);
+    }
 
     Ok(())
 }
@@ -41,7 +45,7 @@ pub fn search<'a>(term: &str, contents: &'a str) -> Vec<&'a str> {
             results.push(line);
         }
     }
-    println!("{:?}", results);
+    // println!("{:?}", results);
     results
 }
 
