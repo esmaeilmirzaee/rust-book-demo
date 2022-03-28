@@ -32,3 +32,30 @@ pub fn run(config: &mut Config) -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+pub fn search<'a>(term: &str, contents: &'a str) -> Vec<&'a str> {
+    // let mut result: Vec<&str> = vec![];
+    let mut results = Vec::new();
+    for line in contents.lines() {
+        if line.to_lowercase().contains(&term.to_lowercase()) {
+            results.push(line);
+        }
+    }
+    println!("{:?}", results);
+    results
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_search_term_one_result() {
+        let term = "duct";
+        let contents = "\
+Rust:
+Safe, Fast, Productive.
+Pick three.";
+        assert_eq!(vec!["Safe, Fast, Productive."], search(term, contents));
+    }
+}

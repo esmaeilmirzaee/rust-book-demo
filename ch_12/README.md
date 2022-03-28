@@ -13,3 +13,16 @@
 8. Rather than panic! on an error, ? will return the error value from the current function for the caller to handle.
 9. Third, the run function now returns an Ok value in the success case. We’ve declared the run function’s success type as () in the signature, which means we need to wrap the unit type value in the Ok value. This Ok(()) syntax might look a bit strange at first, but using () like this is the idiomatic way to indicate that we’re calling run for its side effects only; it doesn’t return a value we need.
 10. We use if let rather than unwrap_or_else to check whether run returns an Err value and call process::exit(1) if it does. The run function doesn’t return a value that we want to unwrap in the same way that Config::new returns the Config instance. Because run returns () in the success case, we only care about detecting an error, so we don’t need unwrap_or_else to return the unwrapped value because it would only be ().
+11. Test Driven Development software development technique follows these steps:
+    11.1. Write a test that fails and run it to make sure it fails for the reason you expect.
+    11.2. Write or modify just enough code to make the new test pass.
+    11.3. Refactor the code you just added or changed and make sure the tests continue to pass.
+    11.4. Repeat from step 1!
+
+```rust
+let content = "\
+Rust:
+Safe, Fast, Productive.
+Pick three.";
+```
+12. Note that the backslash after the opening double quote tells Rust not to put a newline character at the beginning of the contents of this string literal.
