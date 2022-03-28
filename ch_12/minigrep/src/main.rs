@@ -5,16 +5,15 @@ use std::process;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
     let mut config = minigrep::Config::new(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments {}.", err);
+        eprintln!("Problem parsing arguments {}.", err);
         process::exit(1);
     });
 
 
-    println!("{} {}", config.query, config.filename);
-
     if let Err(e) = minigrep::run(&mut config) {
-        println!("Application error {}.", e);
+        eprintln!("Application error {}.", e);
         process::exit(1);
     };
 }
