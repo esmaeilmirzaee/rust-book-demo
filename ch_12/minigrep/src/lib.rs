@@ -28,8 +28,6 @@ pub fn run(config: &mut Config) -> Result<(), Box<dyn Error>> {
 
     let content = fs::read_to_string(&config.filename)?;
 
-    // println!("With text: {}", content);
-
     for line in search(&config.query, &content) {
         println!("{}", line);
     }
@@ -38,14 +36,13 @@ pub fn run(config: &mut Config) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn search<'a>(term: &str, contents: &'a str) -> Vec<&'a str> {
-    // let mut result: Vec<&str> = vec![];
     let mut results = Vec::new();
     for line in contents.lines() {
-        if line.to_lowercase().contains(&term.to_lowercase()) {
+        if line.contains(&term) {
             results.push(line);
         }
     }
-    // println!("{:?}", results);
+
     results
 }
 
