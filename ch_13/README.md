@@ -63,3 +63,51 @@ impl<T> Cacher<T> where T: Fn(u32) -> u32 {
     15.3. `Fn` borrows values from the environment immutably.
 16. Most of the time when specifying one of the `Fn` trait bounds, you can start with `Fn` and the compiler will tell you if you need `FnMut` or `FnOnce` based on what happens in the closure body.
 17. `move` closures may still implement `Fn` or `FnMut`, even though they capture variables by `move`. This is because the traits implemented by a closure type are determined by what the closure does with captured values, not how it captures them. The `move` keyword only specifies the latter.
+18. The **iterator pattern** allows you to perform some task on a sequence of items in turn. An `iterator` is responsible for the logic of iterating over each item and determining when the sequence has finished. When you use iterators, you don’t have to reimplement that logic yourself. In _Rust_, iterators are lazy, meaning they have no effect until you call methods that consume the iterator to use it up.
+19. Iterators handle all that logic for you, cutting down on repetitive code you could potentially mess up. Iterators give you more flexibility to use the same logic with many different kinds of sequences, not just data structures you can index into, like vectors.
+20. Notice this definition uses some new syntax: type `Item` and `Self::Item`, which are defining an associated type with this trait.
+21. The `Iterator` trait only requires implementors to define one method: the `next` method, which returns one item of the iterator at a time wrapped in `Some` and, when iteration is over, returns `None`.
+
+```rust
+#[test]
+fn iterator_demonstratoration() {
+    let v1 = vec![1,2,3];
+    let mut v1_iter = v1.iter();
+    assert_eq!(v1_iter.next(), Some(&1));
+    assert_eq!(v1_iter.next(), Some(&2));
+    assert_eq!(v1_iter.next(), Some(&3));
+    assert_eq!(v1_iter.next(), None);
+}
+```
+
+22. Note that we needed to make `v1_iter` mutable: calling the next method on an iterator changes internal state that the iterator uses to keep track of where it is in the sequence. In other words, this code consumes, or uses up, the iterator. Each call to next eats up an item from the iterator. We didn’t need to make `v1_iter` mutable when we used a for loop because the loop took ownership of `v1_iter` and made it mutable behind the scenes.
+23. Also note that the values we get from the calls to next are immutable references to the values in the vector. The `iter` method produces an iterator over immutable references. If we want to create an iterator that takes ownership of `v1` and returns owned values, we can call `into_iter` instead of `iter`. Similarly, if we want to iterate over mutable references, we can call `iter_mut` instead of `iter`.
+24. The `Iterator` trait has a number of different methods with default implementations provided by the standard library; you can find out about these methods by looking in the standard library API documentation for the `Iterator` trait. Some of these methods call the `next` method in their definition, which is why you’re required to implement the next method when implementing the `Iterator` trait.
+
+```rust
+#[test]
+fn iterator_sum() {
+    let v1 = vec![1,2,3];
+    let v1_iter = v1.iter();
+    let total = v1_iter.sum();
+    assert_eq!(6, total);
+}
+```
+
+25. Methods that call next are called consuming adaptors, because calling them uses up the iterator. One example is the `sum` method, which takes ownership of the iterator and iterates through the items by repeatedly calling next, thus consuming the iterator. As it iterates through, it adds each item to a running total and returns the total when iteration is complete. We aren’t allowed to use `v1_iter` after the call to `sum` because `sum` takes ownership of the iterator we call it on.
+
+```rust
+#[test]
+fn iterator_chaining() {
+    let v1 = vec![1,2,3];
+    let v1_iter = v1.iter().map(|x| x+1);
+    let mut i = 0;
+    for item in v1_iter {
+        assert_eq!(v1[i], item);
+        i += 1;
+    }
+}
+```
+
+26. Other methods defined on the `Iterator` trait, known as `iterator adaptors`, allow you to change iterators into different kinds of iterators. You can chain multiple calls to `iterator adaptors` to perform complex actions in a readable way. But because **all iterators are lazy**, you have to call one of the consuming adaptor methods to get results from calls to iterator adaptors.
+27. Now that we’ve introduced iterators, we can demonstrate a common use of closures that capture their environment by using the `filter` iterator adaptor. The `filter` method on an iterator takes a closure that takes each item from the iterator and returns a `Boolean`. If the closure returns true, the value will be included in the iterator produced by `filter`. If the closure returns false, the value won’t be included in the resulting iterator.
