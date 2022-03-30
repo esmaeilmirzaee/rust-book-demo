@@ -50,3 +50,16 @@ fn filters_by_size() {
     assert_eq!(in_my_size, vec![Shoe{size: 10, style:"Sneaker".to_string()}, Shoe{size:10, style:"Boot"
         .to_string()}]);
 }
+
+#[test]
+fn calling_counter() {
+    use iterators::Counter;
+
+    let mut c = Counter::new();
+    assert_eq!(c.next(), Some(1));
+    assert_eq!(c.next(), Some(2));
+    assert_eq!(c.next(), Some(3));
+    assert_eq!(c.next(), Some(4));
+    assert_eq!(c.next(), Some(5));
+    assert_eq!(c.next(), None);
+}
