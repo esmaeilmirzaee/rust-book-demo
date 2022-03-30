@@ -112,3 +112,30 @@ fn iterator_chaining() {
 26. Other methods defined on the `Iterator` trait, known as `iterator adaptors`, allow you to change iterators into different kinds of iterators. You can chain multiple calls to `iterator adaptors` to perform complex actions in a readable way. But because **all iterators are lazy**, you have to call one of the consuming adaptor methods to get results from calls to iterator adaptors.
 27. Now that we’ve introduced iterators, we can demonstrate a common use of closures that capture their environment by using the `filter` iterator adaptor. The `filter` method on an iterator takes a closure that takes each item from the iterator and returns a `Boolean`. If the closure returns true, the value will be included in the iterator produced by `filter`. If the closure returns false, the value won’t be included in the resulting iterator.
 28. We’ve shown that you can create an iterator by calling `iter`, `into_iter`, or `iter_mut` on a `vector`. You can create iterators from the other collection types in the standard library, such as **hash map**. You can also create iterators that do anything you want by implementing the `Iterator trait` on your own types. As previously mentioned, the only method you’re required to provide a definition for is the `next` method. Once you’ve done that, you can use all other methods that have default implementations provided by the `Iterator trait`!
+
+```rust
+pub struct Counter {
+    count: u32,
+}
+
+impl Counter {
+    pub fn new() -> Counter {
+        Counter { count: 0 }
+    }
+}
+
+impl Iterator for Counter {
+    type Item: u32;
+
+    fn next(&mut self) -> Option<Some::Item> {
+        if self.count < 5 {
+            self.count += 1;
+            Some(self.count)
+        } else {
+            None
+        }
+    }
+}
+```
+
+29. All of these method calls are possible because we specified how the next method works, and the standard library provides default implementations for other methods that call next.
