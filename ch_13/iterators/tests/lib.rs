@@ -27,3 +27,26 @@ fn iterator_chaining() {
         i+=1;
     }
 }
+
+#[test]
+fn filters_by_size() {
+    use iterators::{Shoe, shoes_in_size};
+    let my_shoes = vec![
+        Shoe{
+            size: 10,
+            style: String::from("Sneaker"),
+        },
+        Shoe{
+            size: 13,
+            style: "Sandal".to_string(),
+        },
+        Shoe{
+            size: 10,
+            style: "Boot".to_string(),
+        },
+    ];
+
+    let in_my_size = shoes_in_size(my_shoes, 10);
+    assert_eq!(in_my_size, vec![Shoe{size: 10, style:"Sneaker".to_string()}, Shoe{size:10, style:"Boot"
+        .to_string()}]);
+}
