@@ -75,3 +75,34 @@ impl<T> Deref for MyBox<T> {
     From `&mut T` to `&U` when `T: Deref<Target=U>`
 
 26. The first two cases are the same except for mutability. The first case states that if you have a `&T`, and `T` implements `Deref` to some type `U`, you can get a `&U` transparently. The second case states that the same `deref` coercion happens for mutable references. The third case is trickier: _Rust_ will also coerce a mutable reference to an immutable one. But the reverse is not possible: immutable references will never coerce to mutable references. Because of the borrowing rules, if you have a mutable reference, that mutable reference must be the only reference to that data (otherwise, the program wouldn’t compile). Converting one mutable reference to one immutable reference will never break the borrowing rules. Converting an immutable reference to a mutable reference would require that the initial immutable reference is the only immutable reference to that data, but the borrowing rules don’t guarantee that. Therefore, Rust can’t make the assumption that converting an immutable reference to a mutable reference is possible.
+27. In some languages, the programmer must call code to free memory or resources every time they finish using an instance of a smart pointer. If they forget, the system might become overloaded and crash. In Rust, you can specify that a particular bit of code be run whenever a value goes out of scope, and the compiler will insert this code automatically. As a result, you don’t need to be careful about placing cleanup code everywhere in a program that an instance of a particular type is finished with—you still won’t leak resources!
+
+```rust
+struct CustomSmartPointer {
+    data: String,
+}
+
+impl Drop for CustomSmartPointer {
+    fn drop(&mut self) {
+        println!("Dropping a custom smart pointer. {}", self.data);
+    }
+}
+```
+
+28. Specify the code to run when a value goes out of scope by implementing the `Drop` trait. The `Drop` trait requires you to implement one method named `drop` that takes a mutable reference to `self`.
+29. Unfortunately, it’s not straightforward to disable the automatic `drop` functionality. Disabling `drop` isn’t usually necessary; the whole point of the `Drop` trait is that it’s taken care of automatically. Occasionally, however, you might want to clean up a value early. One example is when using smart pointers that manage _locks_: you might want to force the `drop` method that releases the _lock_ so that other code in the same scope can acquire the _lock_. _Rust_ doesn’t let you call the `Drop` trait’s `drop` method manually; instead you have to call the `std::mem::drop` function provided by the standard library if you want to force a value to be dropped before the end of its scope.
+30. A **destructor** (i.e. is the general programming term for a function that cleans up an instance) is analogous to a **constructor**, which creates an instance.
+31. _Rust_ doesn’t let us call `drop` explicitly because _Rust_ would still automatically call `drop` on the value at the end of main. This would be a double free error because _Rust_ would be trying to clean up the same value twice.
+
+```rust
+fn main() {
+    let c = CustomSmartPointer {
+        data: String::from("A string"),
+    };
+    drop(c);
+    println!("This can't be done. {}", c.data);
+}
+```
+
+32. The `std::mem::drop` function is different from the `drop` method in the `Drop` trait. We call it by passing the value we want to force to be dropped early as an argument. The function is in the prelude.
+33. You can use code specified in a `Drop` trait implementation in many ways to make cleanup convenient and safe: for instance, you could use it to create your own memory `allocator!` With the `Drop` trait and _Rust_’s ownership system, you don’t have to remember to clean up because _Rust_ does it automatically. You also don’t have to worry about problems resulting from accidentally cleaning up values still in use: the ownership system that makes sure references are always valid also ensures that `drop` gets called only once when the value is no longer being used.
