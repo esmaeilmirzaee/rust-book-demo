@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
-use reference_cycle::{Node, List};
+
+use reference_cycle::{List, Node};
 
 fn main() {
     let leaf = Rc::new(Node {
@@ -9,14 +10,22 @@ fn main() {
         children: RefCell::new(vec![]),
     });
 
-    let branch = Rc::new(Node {
-        value: 9,
-        parent: RefCell::new(Weak::new()),
-        children: RefCell::new(vec![Rc::clone(&leaf)]),
-    });
+    println!("leaf strong = {}\tweak= {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));
+    {
+        let branch = Rc::new(Node {
+            value: 9,
+            parent: RefCell::new(Weak::new()),
+            children: RefCell::new(vec![Rc::clone(&leaf)]),
+        });
 
-    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
-    println!("leaf parent {:?}", leaf.parent.borrow().upgrade());
+        *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+        println!("leaf strong= {}\tweak= {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));
+        println!("branch strong= {}\tweak= {}", Rc::strong_count(&branch), Rc::weak_count(&branch));
+
+        println!("leaf parent {:?}", leaf.parent.borrow().upgrade());
+    }
+    println!("leaf strong= {}\tweak= {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));
 }
 
 fn _cycling() {
